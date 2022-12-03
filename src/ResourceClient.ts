@@ -1,12 +1,13 @@
 import { Config } from ".";
 import WebSocket from "ws";
-import { InitializeMessageFromResource, isAcknowledgeMessageToResource, isRequestFromClient, RequestFromClient, ResponseToClient } from "./types";
+import { CancelRequestFromClientMessage, InitializeMessageFromResource, isAcknowledgeMessageToResource, isCancelRequestFromClientMessage, isRequestFromClient, RequestFromClient, ResponseToClient } from "./types";
 import { FileUploadRequest, FileUploadResponse, isKacheryResourceRequest, KacheryResourceRequest, KacheryResourceResponse } from "./KacheryResourceRequest";
 import FileUploadJob from "./FileUploadJob";
 
 class ResourceClient {
     #webSocket: WebSocket | undefined = undefined
     #fileUploadJobs: {[uri: string]: FileUploadJob} = {}
+    #acknowledged = false
     constructor(private config: Config) {
     }
     async run() {
@@ -15,9 +16,10 @@ class ResourceClient {
             return
         }
         return new Promise<void>((resolve) => {
+            this.#acknowledged = false
             console.info(`Connecting to ${this.config.proxyUrl}`)
             const ws = new WebSocket(this.config.proxyUrl)
-            this.#webSocket = this.#webSocket
+            this.#webSocket = ws
             ws.on('open', () => {
                 console.info('Connected')
                 const msg: InitializeMessageFromResource = {
@@ -32,7 +34,7 @@ class ResourceClient {
                 this.#webSocket = undefined
                 resolve()
             })
-            ws.on('message', msg => {
+            ws.on('message', msg => {                
                 const messageJson = msg.toString()
                 let message: any
                 try {
@@ -43,19 +45,21 @@ class ResourceClient {
                     ws.close()
                     return
                 }
-                let acknowledged = false
                 if (isAcknowledgeMessageToResource(message)) {
                     console.info('Connection acknowledged by proxy server')
-                    acknowledged = true
+                    this.#acknowledged = true
                     return
                 }
-                if (!acknowledged) {
+                if (!this.#acknowledged) {
                     console.info('Unexpected, message before connection acknowledged. Closing.')
                     ws.close()
                     return
                 }
                 if (isRequestFromClient(message)) {
                     this.handleRequestFromClient(message)
+                }
+                else if (isCancelRequestFromClientMessage(message)) {
+                    this.handleCancelRequestFromClient(message)
                 }
                 else {
                     console.warn(message)
@@ -98,6 +102,10 @@ class ResourceClient {
             response: kacheryResponse
         }
         this.#webSocket.send(JSON.stringify(responseToClient))
+    }
+    async handleCancelRequestFromClient(message: CancelRequestFromClientMessage) {
+        const {requestId} = message
+        // todo: handle this
     }
     async handleRequest(request: KacheryResourceRequest): Promise<KacheryResourceResponse> {
         if (request.type === 'fileUpload') {

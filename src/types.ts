@@ -1,9 +1,10 @@
-import validateObject, { isEqualTo, isString, optional } from "./validateObject"
+import validateObject, { isEqualTo, isNumber, isString, optional } from "./validateObject"
 
 export type RequestFromClient = {
     type: 'requestFromClient'
     resourceName: string
     request: any
+    timeoutMsec: number
     requestId?: string // added when sending over websocket
 }
 
@@ -12,6 +13,7 @@ export const isRequestFromClient = (x: any): x is RequestFromClient => {
         type: isEqualTo('requestFromClient'),
         resourceName: isString,
         request: () => (true),
+        timeoutMsec: isNumber,
         requestId: optional(isString)
     })
 }
@@ -67,4 +69,3 @@ export const isCancelRequestFromClientMessage = (x: any): x is CancelRequestFrom
         requestId: isString
     })
 }
-
