@@ -22,6 +22,7 @@ const main = () => {
 export type Config = {
     resourceName?: string
     kacheryZone?: string
+    maxConcurrentUploads?: number
     proxyUrl?: string
     proxySecret?: string
 }
@@ -37,6 +38,12 @@ const init = async () => {
             name: 'kacheryZone',
             message: `Kachery zone$ (use . for default zone)`,
             default: config.kacheryZone || '.'
+        },
+        {
+            name: 'maxConcurrentUploads',
+            message: `Maximum concurrent uploads`,
+            default: config.maxConcurrentUploads ? config.maxConcurrentUploads : 2,
+            type: 'number'
         },
         {
             name: 'proxyUrl',

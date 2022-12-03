@@ -15,7 +15,7 @@ export const isFileUploadRequest = (x: any): x is FileUploadRequest => {
 }
 
 export type FileUploadStatus = {
-    status: 'not-found' | 'uploading' | 'completed' | 'error'
+    status: 'not-found' | 'queued' | 'running' | 'completed' | 'error'
     size?: number
     bytesUploaded?: number
     timestampRequested?: number
@@ -26,7 +26,7 @@ export type FileUploadStatus = {
 
 export const isFileUploadStatus = (x: any): x is FileUploadStatus => {
     return validateObject(x, {
-        status: isOneOf(['not-found', 'uploading', 'completed', 'error'].map(a => isEqualTo(a))),
+        status: isOneOf(['not-found', 'queued', 'running', 'completed', 'error'].map(a => isEqualTo(a))),
         size: optional(isNumber),
         bytesUploaded: optional(isNumber),
         timestampRequested: optional(isNumber),

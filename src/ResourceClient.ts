@@ -83,7 +83,7 @@ class ResourceClient {
         }
         let kacheryResponse: KacheryResourceResponse
         try {
-            kacheryResponse = await this.handleRequest(rr)
+            kacheryResponse = await this.handleRequest(rr, request.requestId)
         }
         catch(err) {
             const resp: ResponseToClient = {
@@ -105,17 +105,21 @@ class ResourceClient {
     }
     async handleCancelRequestFromClient(message: CancelRequestFromClientMessage) {
         const {requestId} = message
-        // todo: handle this
+        if (!requestId) return
+        const jobs = Object.values(this.#fileUploadJobs).filter(j => (j.requestId))
+        if (jobs.length > 0) {
+            jobs[0].cancel()
+        }
     }
-    async handleRequest(request: KacheryResourceRequest): Promise<KacheryResourceResponse> {
+    async handleRequest(request: KacheryResourceRequest, requestId?: string): Promise<KacheryResourceResponse> {
         if (request.type === 'fileUpload') {
-            return await this.handleFileUploadRequest(request)
+            return await this.handleFileUploadRequest(request, requestId)
         }
         else {
             throw Error(`Unexpected request ${request.type}`)
         }
     }
-    async handleFileUploadRequest(request: FileUploadRequest): Promise<FileUploadResponse> {
+    async handleFileUploadRequest(request: FileUploadRequest, requestId?: string): Promise<FileUploadResponse> {
         const {uri} = request
         if (!isValidUri(uri)) throw Error('Invalid URI')
         if (uri in this.#fileUploadJobs) {
@@ -129,11 +133,18 @@ class ResourceClient {
         }
         {
             const j1 = new FileUploadJob(uri)
+            if (requestId) j1.setRequestId(requestId)
             await j1.initialize()
+            j1.onStatusChange(() => {
+                this._processQueuedJobs()
+            })
             if (j1.status.status !== 'not-found') {
                 this.#fileUploadJobs[uri] = j1
             }
-            if (j1.status.status === 'uploading') {
+            if (j1.status.status === 'queued') {
+                if (this._getNumRunningJobs() < (this.config.maxConcurrentUploads || 0)) {
+                    j1.startUpload()
+                }
                 // if uploading, wait a bit to see if we can complete it before responding to the request
                 await j1.waitForCompleted(1000 * 10)
             }
@@ -141,6 +152,22 @@ class ResourceClient {
                 type: 'fileUpload',
                 status: j1.status
             }
+        }
+    }
+    _getNumRunningJobs() {
+        return Object.values(this.#fileUploadJobs).filter(a => (a.status.status === 'running')).length
+    }
+    _processQueuedJobs() {
+        let nn = this._getNumRunningJobs()
+        const max = (this.config.maxConcurrentUploads || 0)
+        const jobs = Object.values(this.#fileUploadJobs)
+            .filter(j => (j.status.status === 'queued'))
+            .sort((j1, j2) => (j1.timestampCreated - j2.timestampCreated))
+        let i = 0
+        while ((nn < max) && (i < jobs.length)) {
+            jobs[i].startUpload()
+            nn ++
+            i ++
         }
     }
 }
