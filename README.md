@@ -11,7 +11,7 @@ To share files on a local computer, you will need to run a kachery-resource daem
 Prerequisites:
 * NodeJS >= v16 (earlier versions may also work)
 
-For now, during development, you'll need to install kachery-resource from scratch.
+For now, during development, you'll need to install kachery-resource from source.
 
 ```bash
 git clone <this-repo>
