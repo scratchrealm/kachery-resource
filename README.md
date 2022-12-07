@@ -4,7 +4,7 @@ When you host a Kachery resource, you share files stored locally without having 
 
 ## How it works
 
-To share files on a local computer, you will need to run a kachery-resource daemon on that computer. This daemon will establish a connection with a kachery-resource-proxy server in the cloud. Both the daemon and the proxy server should be associated with the same Kachery zone. Then, on a remote machine that is configured to work with that same zone, you can request the file using a Kachery Python client. If the file is not already in the cloud, the daemon will receive the request and upload it to the cloud bucket for the Kachery zone. It will then be available for download by the remote client.
+To share files on a local computer, you will need to run a kachery-resource daemon on that computer. This daemon will establish a connection with a [kachery-resource-proxy](https://github.com/scratchrealm/kachery-resource-proxy/blob/main/README.md) server in the cloud. Both the daemon and the proxy server should be associated with the same Kachery zone. Then, on a remote machine that is configured to work with that same zone, you can request the file using a Kachery Python client. If the file is not already in the cloud, the daemon will receive the request and upload it to the cloud bucket for the Kachery zone. It will then be available for download by the remote client.
 
 ## Installation
 
@@ -33,7 +33,7 @@ For the below, let's assume the name of your resource is "example_resource". Of 
 
 **Step1: Identify a kachery-resource-proxy server**
 
-In order for remote computers to communicate with your locally-hosted resource, you need a proxy server. You can either host the server yourself or use one maintained by someone else. Contact the authors for help finding a proxy server.
+In order for remote computers to communicate with your locally-hosted resource, you need a proxy server. You can either [host the server yourself](https://github.com/scratchrealm/kachery-resource-proxy/blob/main/README.md) or use one maintained by someone else. Contact the authors for help finding a proxy server.
 
 Obtain the Proxy URL and Proxy secret for the proxy server. These will be used below.
 
