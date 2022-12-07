@@ -32,14 +32,14 @@ kachery-resource init
 
 # Respond to the prompts
 # * Give the resource a name
-# * Provide the name of the kachery zone (which should coincide)
+# * Provide the name of the kachery zone
 # * Specify the maximum number of concurrent uploads
 # * Provide the Proxy URL and the proxy secret obtained above
 ```
 
 This will create a kachery-resource.yaml file in your configuration directory.
 
-**Step 3: Register the resource on the kachery-cloud zone**
+**Step 3: Register the resource on the Kachery zone**
 
 In order for your resource to be locatable on the zone by name, you will need to register the resource.
 
@@ -78,7 +78,11 @@ Now, on a remote computer (that is using the same Kachery zone), request the fil
 import kachery_cloud as kcl
 
 uri = 'sha1://a6770efde8f0d4ff9bed02982b73c6d298363d61'
-R = kcl.request_file(uri, resource='example_resource', timeout_sec=10)
+R = kcl.request_file(
+    uri,
+    resource='example_resource',
+    timeout_sec=10
+)
 R.found # whether the file was found
 R.queued # whether the file has been queued for upload
 R.completed # whether the upload has completed
@@ -91,6 +95,9 @@ R.bytes_uploaded # the number of bytes loaded for an in-progress upload
 
 if R.completed:
     path = kcl.load_file(uri)
+    # or
+    txt = kcl.load_text(uri)
+    print(txt)
 else:
     print('Upload not completed')
 ```
