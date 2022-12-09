@@ -18,7 +18,8 @@ class ResourceClient {
         return new Promise<void>((resolve) => {
             this.#acknowledged = false
             console.info(`Connecting to ${this.config.proxyUrl}`)
-            const ws = new WebSocket(this.config.proxyUrl)
+            const wsUrl = this.config.proxyUrl.replace('http:','ws:').replace('https:','wss:')
+            const ws = new WebSocket(wsUrl)
             this.#webSocket = ws
             ws.on('open', () => {
                 console.info('Connected')
