@@ -17,6 +17,8 @@ For now, during development, you'll need to install kachery-resource from source
 git clone <this-repo>
 
 cd kachery-resource
+npm install
+npm run build
 npm install -g
 
 # Test the installation
@@ -24,8 +26,13 @@ kachery-resource --help
 
 # To get subsequent updates:
 git pull
+npm install
+npm run build
 npm install -g
 ```
+
+If you get a permissions error on the `npm install -g`, then follow this guide:
+https://github.com/mixonic/docs.npmjs.com/blob/master/content/getting-started/fixing-npm-permissions.md
 
 ## Setup
 
