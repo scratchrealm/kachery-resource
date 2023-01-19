@@ -1,28 +1,87 @@
-import yargs, { boolean } from 'yargs'
+import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
+import inquirer from 'inquirer'
+import yaml from 'js-yaml'
 import fs from 'fs'
-import Server from './Server'
+import ResourceClient from './ResourceClient'
+
+const configFname = './kachery-resource.yaml'
+const config: Config = fs.existsSync(configFname) ? (yaml.load(fs.readFileSync(configFname, 'utf-8')) || {}) : {}
 
 const main = () => {
     yargs(hideBin(process.argv))
-        .command('serve', 'Start the server', (yargs) => {
-            return yargs
-        }, (argv) => {
-            serve({port: parseInt(process.env.PORT || "61442"), verbose: argv.verbose ? true : false})
+        .command('init', 'Initialize the resource', yargs => {
+            init()
         })
-        .option('verbose', {
-            alias: 'v',
-            type: 'boolean',
-            description: 'Run with verbose logging'
+        .command('share', 'Share the resource', yargs => {
+            share()
         })
-        .strictCommands()
-        .demandCommand(1)
         .parse()
 }
 
-function serve({port, verbose}: {port: number, verbose: boolean}) {
-    const server = new Server({port, verbose})
-    server.start()
+export type Config = {
+    resourceName?: string
+    kacheryZone?: string
+    maxConcurrentUploads?: number
+    proxyUrl?: string
+    proxySecret?: string
+}
+
+const init = async () => {
+    const answers = await inquirer.prompt([
+        {
+            name: 'resourceName',
+            message: 'Resource name',
+            default: config.resourceName
+        },
+        {
+            name: 'kacheryZone',
+            message: `Kachery zone$ (use . for default zone)`,
+            default: config.kacheryZone || '.'
+        },
+        {
+            name: 'maxConcurrentUploads',
+            message: `Maximum concurrent uploads`,
+            default: config.maxConcurrentUploads ? config.maxConcurrentUploads : 2,
+            type: 'number'
+        },
+        {
+            name: 'proxyUrl',
+            message: 'Proxy URL',
+            default: config.proxyUrl
+        },
+        {
+            name: 'proxySecret',
+            message: 'Proxy secret',
+            default: config.proxySecret,
+            type: 'password'
+        }
+    ])
+    if (answers.kacheryZone === '.')
+        answers.kacheryZone = undefined
+    for (let k in answers) {
+        if (answers[k]) {
+            config[k] = answers[k]
+        }
+        else {
+            config[k] = undefined
+        }
+    }
+    fs.writeFileSync(configFname, yaml.dump(config))
+    console.info(`Wrote ${configFname}`)
+}
+
+const share = async () => {
+    const client = new ResourceClient(config)
+    while (true) {
+        await client.run()
+        console.info('Disconnected. Will try again in 30 seconds.')
+        await sleepMsec(1000 * 30)
+    }
+}
+
+const sleepMsec = async (msec: number) => {
+    return new Promise<void>((resolve) => {setTimeout(() => {resolve()}, msec)})
 }
 
 main()
