@@ -57,19 +57,9 @@ npx kachery-resource@latest share
 # keep this daemon running in a terminal
 ```
 
-## Basic usage
+## Downloading files on a remote computer
 
-On the computer hosting the resource, set the following environment variables
-
-```bash
-# Set the kachery zone as appropriate (must coincide with the zone of the resource)
-export KACHERY_ZONE=...
-
-# For the resource URL using the proxy URL and the resource name
-export KACHERY_RESOURCE_URL=https://kachery-resource-proxy.herokuapp.com/r/example_resource
-```
-
-Identify a file to be shared, and store it locally
+On the computer hosting the resource, identify a file that you want to share and store it locally:
 
 ```python
 import kachery_cloud as kcl
@@ -83,10 +73,15 @@ uri = kcl.link_file('/path/to/file.dat')
 
 Let's assume that the URI is `sha1://a6770efde8f0d4ff9bed02982b73c6d298363d61`.
 
-Now, on a remote computer (that is using the same Kachery zone), set the KACHERY_RESOURCE environment variable to be the name of the resource:
+
+Now, on a remote computer, where you want to download the files, set the following environment variables
 
 ```bash
-export KACHERY_RESOURCE=example_resource
+# Set the kachery zone as appropriate (must coincide with the zone of the resource)
+export KACHERY_ZONE=...
+
+# For the resource URL using the proxy URL and the resource name
+export KACHERY_RESOURCE_URL=https://kachery-resource-proxy.herokuapp.com/r/example_resource
 ```
 
 Then load the file as usual (as though the file was already uploaded to the zone):
