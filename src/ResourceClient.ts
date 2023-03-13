@@ -1,6 +1,6 @@
-import { Config } from ".";
+import { Config, sleepMsec } from ".";
 import WebSocket from "ws";
-import { CancelRequestFromClientMessage, InitializeMessageFromResource, isAcknowledgeMessageToResource, isCancelRequestFromClientMessage, isRequestFromClient, RequestFromClient, ResponseToClient } from "./types";
+import { CancelRequestFromClientMessage, InitializeMessageFromResource, isAcknowledgeMessageToResource, isCancelRequestFromClientMessage, isRequestFromClient, PingMessageFromResource, RequestFromClient, ResponseToClient } from "./types";
 import { FileUploadRequest, FileUploadResponse, isKacheryResourceRequest, KacheryResourceRequest, KacheryResourceResponse } from "./KacheryResourceRequest";
 import FileUploadJob from "./FileUploadJob";
 
@@ -9,6 +9,17 @@ class ResourceClient {
     #fileUploadJobs: {[uri: string]: FileUploadJob} = {}
     #acknowledged = false
     constructor(private config: Config) {
+        this.keepAlive()
+    }
+    async keepAlive() {
+        sleepMsec(1000 * 10)
+        while (true) {
+            if ((this.#webSocket) && (this.#acknowledged)) {
+                const msg: PingMessageFromResource = {type: 'ping'}
+                this.#webSocket.send(JSON.stringify(msg))
+            }
+            sleepMsec(1000 * 20)
+        }
     }
     async run() {
         if (this.#webSocket) {
@@ -73,6 +84,7 @@ class ResourceClient {
         if (!this.#webSocket) return
         const rr = request.request
         if (!isKacheryResourceRequest(rr)) {
+            console.warn('Received invalid kachery resource request.')
             const resp: ResponseToClient = {
                 type: 'responseToClient',
                 requestId: request.requestId,
@@ -87,6 +99,7 @@ class ResourceClient {
             kacheryResponse = await this.handleRequest(rr, request.requestId)
         }
         catch(err) {
+            console.warn('Error processing request', rr.type, err.message)
             const resp: ResponseToClient = {
                 type: 'responseToClient',
                 requestId: request.requestId,
@@ -123,6 +136,7 @@ class ResourceClient {
     async handleFileUploadRequest(request: FileUploadRequest, requestId?: string): Promise<FileUploadResponse> {
         const {uri} = request
         if (!isValidUri(uri)) throw Error('Invalid URI')
+        console.info(`Upload request: ${uri}`)
         if (uri in this.#fileUploadJobs) {
             const j0 = this.#fileUploadJobs[uri]
             if (j0.isRunning) {
@@ -144,6 +158,7 @@ class ResourceClient {
             }
             if (j1.status.status === 'queued') {
                 if (this._getNumRunningJobs() < (this.config.maxConcurrentUploads || 0)) {
+                    console.info(`Starting upload: ${uri}`)
                     j1.startUpload()
                 }
                 // if uploading, wait a bit to see if we can complete it before responding to the request

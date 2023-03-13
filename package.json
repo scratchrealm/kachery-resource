@@ -1,10 +1,11 @@
 {
   "name": "kachery-resource",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Kachery resource",
   "main": "dist/index.js",
   "bin": {
-    "kachery-resource": "./bin/kachery-resource"
+    "kachery-resource": "./bin/kachery-resource",
+    "release": "rm -rf dist && yarn build && npm publish && git tag $npm_package_version && git push --tags"
   },
   "scripts": {
     "build": "tsc"

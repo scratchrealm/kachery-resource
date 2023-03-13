@@ -48,6 +48,11 @@ export const isInitializeMessageFromResource = (x: any): x is InitializeMessageF
     })
 }
 
+// to keep alive
+export type PingMessageFromResource = {
+    type: 'ping'
+}
+
 export type AcknowledgeMessageToResource = {
     type: 'acknowledge'
 }
@@ -69,3 +74,4 @@ export const isCancelRequestFromClientMessage = (x: any): x is CancelRequestFrom
         requestId: isString
     })
 }
+

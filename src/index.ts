@@ -80,7 +80,7 @@ const share = async () => {
     }
 }
 
-const sleepMsec = async (msec: number) => {
+export const sleepMsec = async (msec: number) => {
     return new Promise<void>((resolve) => {setTimeout(() => {resolve()}, msec)})
 }
 
