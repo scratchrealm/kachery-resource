@@ -9,30 +9,9 @@ To share files from your local machine to remote Kachery clients, you run a kach
 ## Installation
 
 Prerequisites:
-* NodeJS >= v16 (earlier versions may also work)
+* NodeJS >= v16
 
-For now, during development, you'll need to install kachery-resource from source.
-
-```bash
-git clone <this-repo>
-
-cd kachery-resource
-npm install
-npm run build
-npm install -g
-
-# Test the installation
-kachery-resource --help
-
-# To get subsequent updates:
-git pull
-npm install
-npm run build
-npm install -g
-```
-
-If you get a permissions error on the `npm install -g`, then follow this guide:
-https://github.com/mixonic/docs.npmjs.com/blob/master/content/getting-started/fixing-npm-permissions.md
+There is not need to clone this repo.
 
 ## Setup
 
@@ -56,7 +35,7 @@ mkdir example_resource
 
 # Initialize the resource
 cd example_resource
-kachery-resource init
+npx kachery-resource@latest init
 
 # Respond to the prompts
 # * Give the resource a name
@@ -79,7 +58,7 @@ To run the resource daemon:
 
 ```bash
 cd example_resource
-kachery-resource share
+npx kachery-resource@latest share
 
 # keep this daemon running in a terminal
 ```
@@ -100,34 +79,17 @@ uri = kcl.link_file('/path/to/file.dat')
 
 Let's assume that the URI is `sha1://a6770efde8f0d4ff9bed02982b73c6d298363d61`.
 
-Now, on a remote computer (that is using the same Kachery zone), request the file:
+Now, on a remote computer (that is using the same Kachery zone), set the KACHERY_RESOURCE environment variable to be the name of the resource:
+
+```bash
+export KACHERY_RESOURCE=example_resource
+```
+
+Then load the file as usual (as though the file was already uploaded to the zone):
 
 ```python
 import kachery_cloud as kcl
 
 uri = 'sha1://a6770efde8f0d4ff9bed02982b73c6d298363d61'
-R = kcl.request_file(
-    uri,
-    resource='example_resource',
-    timeout_sec=10
-)
-R.found # whether the file was found
-R.queued # whether the file has been queued for upload
-R.completed # whether the upload has completed
-R.running # whether the upload is running
-R.local # whether the file was found locally
-R.errored # whether the upload errored
-R.error_message # the error message
-R.size # the size of the found file
-R.bytes_uploaded # the number of bytes loaded for an in-progress upload
-
-if R.completed:
-    path = kcl.load_file(uri)
-    # or
-    txt = kcl.load_text(uri)
-    print(txt)
-else:
-    print('Upload not completed')
+fname = kcl.load_file(uri)
 ```
-
-As you can see, the `request_file` function returns an object with information about the status of the upload. Once `R.completed` is true, you can load the file in the usual manner.

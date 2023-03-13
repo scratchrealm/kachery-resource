@@ -12,13 +12,13 @@ class ResourceClient {
         this.keepAlive()
     }
     async keepAlive() {
-        sleepMsec(1000 * 10)
+        await sleepMsec(1000 * 10)
         while (true) {
             if ((this.#webSocket) && (this.#acknowledged)) {
                 const msg: PingMessageFromResource = {type: 'ping'}
                 this.#webSocket.send(JSON.stringify(msg))
             }
-            sleepMsec(1000 * 20)
+            await sleepMsec(1000 * 20)
         }
     }
     async run() {
