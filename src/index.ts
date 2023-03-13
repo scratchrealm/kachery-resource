@@ -6,7 +6,8 @@ import fs from 'fs'
 import ResourceClient from './ResourceClient'
 
 const configFname = './kachery-resource.yaml'
-const config: Config = fs.existsSync(configFname) ? (yaml.load(fs.readFileSync(configFname, 'utf-8')) || {}) : {}
+const config: Config | undefined = fs.existsSync(configFname) ?
+                    (yaml.load(fs.readFileSync(configFname, 'utf-8')) as Config || undefined) : undefined
 
 const main = () => {
     yargs(hideBin(process.argv))
@@ -20,8 +21,8 @@ const main = () => {
 }
 
 export type Config = {
-    resourceName?: string
-    kacheryZone?: string
+    resourceName: string
+    kacheryZone: string
     maxConcurrentUploads?: number
     proxyUrl?: string
     proxySecret?: string
@@ -58,7 +59,7 @@ const init = async () => {
         }
     ])
     if (answers.kacheryZone === '.')
-        answers.kacheryZone = undefined
+        answers.kacheryZone = 'default'
     for (let k in answers) {
         if (answers[k]) {
             config[k] = answers[k]
@@ -72,6 +73,11 @@ const init = async () => {
 }
 
 const share = async () => {
+    if (!config) throw Error('No config')
+    if (!config.kacheryZone) throw Error('No kachery zone in config.')
+    if (config.kacheryZone !== (process.env.KACHERY_ZONE || 'default')) {
+        throw Error(`Mismatch in kachery zone: ${config.kacheryZone} <> ${process.env.KACHERY_ZONE || 'default'}`)
+    }
     const client = new ResourceClient(config)
     while (true) {
         await client.run()

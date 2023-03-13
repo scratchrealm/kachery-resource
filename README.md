@@ -4,18 +4,18 @@ A Kachery resource is a very useful tool if you need to make a large number of l
 
 ## How it works
 
-To share files from your local machine to remote Kachery clients, you run a kachery-resource daemon on your local computer, and connect it to a [kachery-resource-proxy](https://github.com/scratchrealm/kachery-resource-proxy/blob/main/README.md) server in the cloud (both the daemon and the proxy server must be associated with the same Kachery zone). Then, on a remote machine that is configured for the same zone, a Kachery client can be used to request the file. If the file is not already in the cloud, the daemon will upload it to the cloud bucket for the Kachery zone, and the remote client will then be able to download it.
+To share files from your local machine to remote Kachery clients, you run a kachery-resource daemon on your local computer, and connect it to a [kachery-resource-proxy](https://github.com/scratchrealm/kachery-resource-proxy/blob/main/README.md) server in the cloud. Then, on a remote machine that is configured for the same zone as the resource, a Kachery client can be used to request the file. If the file is not already in the cloud, the daemon will upload it to the cloud bucket for the Kachery zone, and the remote client will then be able to download it.
 
 ## Installation
 
 Prerequisites:
 * NodeJS >= v16
 
-There is not need to clone this repo.
+There is no need to clone this repo.
 
 ## Setup
 
-For the below, let's assume the name of your resource is "example_resource". Of course, you should choose a different name.
+For the below, let's assume the name of your resource is `example_resource`. Of course, you should choose a different name.
 
 **Step1: Identify a kachery-resource-proxy server**
 
@@ -23,9 +23,9 @@ In order for remote computers to communicate with your locally-hosted resource, 
 
 Obtain the Proxy URL and Proxy secret for the proxy server. These will be used below.
 
-**Step 2: Initialize the resource on your local machine**
+For this guide, let's assume the Proxy URL is `https://kachery-resource-proxy.herokuapp.com`
 
-Note that the Kachery zone of the proxy server must coincide with the KACHERY_ZONE environment variable on your local machine.
+**Step 2: Initialize the resource on your local machine**
 
 On the computer that has the files you want to share, initialize the resource:
 
@@ -46,13 +46,7 @@ npx kachery-resource@latest init
 
 This will create a kachery-resource.yaml file in your configuration directory.
 
-**Step 3: Register the resource on the Kachery zone**
-
-In order for your resource to be locatable on the zone by name, you will need to register the resource.
-
-Point your browser to the website for the zone (e.g., https://kachery-gateway-example-resource.vercel.app), login, and create a new resource. You will be asked to provide the name and the Proxy URL for the resource
-
-**Step 4: Run the resource daemon**
+**Step 3: Run the resource daemon**
 
 To run the resource daemon:
 
@@ -65,7 +59,17 @@ npx kachery-resource@latest share
 
 ## Basic usage
 
-On the computer hosting the resource, identify a file to be shared, and store it locally
+On the computer hosting the resource, set the following environment variables
+
+```bash
+# Set the kachery zone as appropriate (must coincide with the zone of the resource)
+export KACHERY_ZONE=...
+
+# For the resource URL using the proxy URL and the resource name
+export KACHERY_RESOURCE_URL=https://kachery-resource-proxy.herokuapp.com/r/example_resource
+```
+
+Identify a file to be shared, and store it locally
 
 ```python
 import kachery_cloud as kcl

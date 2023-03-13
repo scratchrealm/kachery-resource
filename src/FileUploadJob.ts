@@ -14,7 +14,6 @@ class FileUploadJob {
     #fileInfo: KacheryFileInfo | undefined
     #statusChangeCallbacks: {[id: string]: () => void} = {}
     #timestampCreated: number
-    #cancelSignaller: {onCancel?: () => void} = {}
     #requestId?: string
     constructor(private uri: string) {
         this.#timestampCreated = Date.now()
@@ -58,14 +57,18 @@ class FileUploadJob {
         return new Promise<void>((resolve) => {
             let finished = false
             const cancelCallback = this.onStatusChange(() => {
-                if (this.#status.status !== 'running') {
+                checkFinished()
+            })
+            const checkFinished = () => {
+                if (!['queued', 'running'].includes(this.#status.status)) {
                     if (!finished) {
                         finished = true
                         cancelCallback()
                         resolve()
                     }
                 }
-            })
+            }
+            checkFinished()
             setTimeout(() => {
                 if (!finished) {
                     finished = true
@@ -82,18 +85,6 @@ class FileUploadJob {
             delete this.#statusChangeCallbacks[id]
         }
     }
-    cancel() {
-        if ((this.status.status === 'running') || (this.status.status === 'queued')) {
-            console.info('Canceling file upload job.')
-            this._updateStatus({
-                status: 'error',
-                error: 'canceled'
-            })
-            if (this.#cancelSignaller.onCancel) {
-                this.#cancelSignaller.onCancel() // calls kill on the process
-            }
-        }
-    }
     async _startUpload() {
         const cmd = `kachery-cloud-store ${this.#fileInfo.path}`
         this._updateStatus({
@@ -101,7 +92,7 @@ class FileUploadJob {
             timestampStarted: Date.now()
         })
         try {
-            await execAsync(cmd, this.#cancelSignaller)
+            await execAsync(cmd)
         }
         catch(err) {
             this._updateStatus({
@@ -130,7 +121,7 @@ class FileUploadJob {
     }
 }
 
-const execAsync = (cmd: string, cancelSignaller: {onCancel?: () => void}) => {
+const execAsync = (cmd: string) => {
     return new Promise<void>((resolve, reject) => {
         const process = exec(cmd, (error, stdout, stderr) => {}).on('exit', code => {
             if (code === 0) {
@@ -140,9 +131,9 @@ const execAsync = (cmd: string, cancelSignaller: {onCancel?: () => void}) => {
                 reject(new Error(`Command exited with code ${code}`))
             }
         })
-        cancelSignaller.onCancel = () => {
-            process.kill() // sends SIGTERM by default. Is this what we want? (@jsoules)   
-        }
+        // cancelSignaller.onCancel = () => {
+        //     process.kill() // sends SIGTERM by default. Is this what we want? (@jsoules)   
+        // }
     })
 }
 

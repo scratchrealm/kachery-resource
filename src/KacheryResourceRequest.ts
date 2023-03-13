@@ -5,12 +5,14 @@ import validateObject, { isEqualTo, isNumber, isOneOf, isString, optional } from
 export type FileUploadRequest = {
     type: 'fileUpload'
     uri: string
+    timeoutMsec: number
 }
 
 export const isFileUploadRequest = (x: any): x is FileUploadRequest => {
     return validateObject(x, {
         type: isEqualTo('fileUpload'),
-        uri: isString
+        uri: isString,
+        timeoutMsec: isNumber
     })
 }
 

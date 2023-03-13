@@ -1,8 +1,8 @@
-import { Config, sleepMsec } from ".";
 import WebSocket from "ws";
-import { CancelRequestFromClientMessage, InitializeMessageFromResource, isAcknowledgeMessageToResource, isCancelRequestFromClientMessage, isRequestFromClient, PingMessageFromResource, RequestFromClient, ResponseToClient } from "./types";
-import { FileUploadRequest, FileUploadResponse, isKacheryResourceRequest, KacheryResourceRequest, KacheryResourceResponse } from "./KacheryResourceRequest";
+import { Config, sleepMsec } from ".";
 import FileUploadJob from "./FileUploadJob";
+import { FileUploadRequest, FileUploadResponse, isKacheryResourceRequest, KacheryResourceRequest, KacheryResourceResponse } from "./KacheryResourceRequest";
+import { InitializeMessageFromResource, isAcknowledgeMessageToResource, isRequestFromClient, PingMessageFromResource, RequestFromClient, ResponseToClient } from "./types";
 
 class ResourceClient {
     #webSocket: WebSocket | undefined = undefined
@@ -37,6 +37,7 @@ class ResourceClient {
                 const msg: InitializeMessageFromResource = {
                     type: 'initialize',
                     resourceName: this.config.resourceName,
+                    zone: this.config.kacheryZone,
                     proxySecret: this.config.proxySecret
                 }
                 ws.send(JSON.stringify(msg))
@@ -69,9 +70,6 @@ class ResourceClient {
                 }
                 if (isRequestFromClient(message)) {
                     this.handleRequestFromClient(message)
-                }
-                else if (isCancelRequestFromClientMessage(message)) {
-                    this.handleCancelRequestFromClient(message)
                 }
                 else {
                     console.warn(message)
@@ -117,14 +115,6 @@ class ResourceClient {
         }
         this.#webSocket.send(JSON.stringify(responseToClient))
     }
-    async handleCancelRequestFromClient(message: CancelRequestFromClientMessage) {
-        const {requestId} = message
-        if (!requestId) return
-        const jobs = Object.values(this.#fileUploadJobs).filter(j => (j.requestId))
-        if (jobs.length > 0) {
-            jobs[0].cancel()
-        }
-    }
     async handleRequest(request: KacheryResourceRequest, requestId?: string): Promise<KacheryResourceResponse> {
         if (request.type === 'fileUpload') {
             return await this.handleFileUploadRequest(request, requestId)
@@ -161,8 +151,8 @@ class ResourceClient {
                     console.info(`Starting upload: ${uri}`)
                     j1.startUpload()
                 }
-                // if uploading, wait a bit to see if we can complete it before responding to the request
-                await j1.waitForCompleted(1000 * 10)
+                // if uploading, wait to see if we can complete it before responding to the request
+                await j1.waitForCompleted(request.timeoutMsec)
             }
             return {
                 type: 'fileUpload',
