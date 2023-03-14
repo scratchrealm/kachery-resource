@@ -1,14 +1,14 @@
 {
   "name": "kachery-resource",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Kachery resource",
   "main": "dist/index.js",
   "bin": {
-    "kachery-resource": "./bin/kachery-resource",
-    "release": "rm -rf dist && yarn build && npm publish && git tag $npm_package_version && git push --tags"
+    "kachery-resource": "./bin/kachery-resource"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "release": "rm -rf dist && yarn build && npm publish && git tag $npm_package_version && git push --tags"
   },
   "author": "Jeremy Magland",
   "license": "Apache-2.0",

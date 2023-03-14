@@ -33,28 +33,28 @@ const init = async () => {
         {
             name: 'resourceName',
             message: 'Resource name',
-            default: config.resourceName
+            default: config?.resourceName
         },
         {
             name: 'kacheryZone',
             message: `Kachery zone$ (use . for default zone)`,
-            default: config.kacheryZone || '.'
+            default: config?.kacheryZone || '.'
         },
         {
             name: 'maxConcurrentUploads',
             message: `Maximum concurrent uploads`,
-            default: config.maxConcurrentUploads ? config.maxConcurrentUploads : 2,
+            default: config?.maxConcurrentUploads ? config?.maxConcurrentUploads : 2,
             type: 'number'
         },
         {
             name: 'proxyUrl',
             message: 'Proxy URL',
-            default: config.proxyUrl
+            default: config?.proxyUrl
         },
         {
             name: 'proxySecret',
             message: 'Proxy secret',
-            default: config.proxySecret,
+            default: config?.proxySecret,
             type: 'password'
         }
     ])
