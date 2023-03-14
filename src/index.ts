@@ -6,7 +6,7 @@ import fs from 'fs'
 import ResourceClient from './ResourceClient'
 
 const configFname = './kachery-resource.yaml'
-const config: Config | undefined = fs.existsSync(configFname) ?
+let config: Config | undefined = fs.existsSync(configFname) ?
                     (yaml.load(fs.readFileSync(configFname, 'utf-8')) as Config || undefined) : undefined
 
 const main = () => {
@@ -60,15 +60,16 @@ const init = async () => {
     ])
     if (answers.kacheryZone === '.')
         answers.kacheryZone = 'default'
+    const newConfig = config || {}
     for (let k in answers) {
         if (answers[k]) {
-            config[k] = answers[k]
+            newConfig[k] = answers[k]
         }
         else {
-            config[k] = undefined
+            newConfig[k] = undefined
         }
     }
-    fs.writeFileSync(configFname, yaml.dump(config))
+    fs.writeFileSync(configFname, yaml.dump(newConfig))
     console.info(`Wrote ${configFname}`)
 }
 
