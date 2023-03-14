@@ -60,6 +60,9 @@ class ResourceClient {
                 }
                 if (isAcknowledgeMessageToResource(message)) {
                     console.info('Connection acknowledged by proxy server')
+                    console.info('')
+                    console.info(`Resource URL: ${this.config.proxyUrl}/r/${this.config.resourceName}`)
+                    console.info('')
                     this.#acknowledged = true
                     return
                 }
