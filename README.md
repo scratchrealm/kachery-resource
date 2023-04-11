@@ -17,7 +17,21 @@ There is no need to clone this repo.
 
 For the below, let's assume the name of your resource is `example_resource`. Of course, you should choose a different name.
 
-**Step1: Identify a kachery-resource-proxy server**
+**Step 1: Set up kachery**
+
+Make sure you have set the following environment variables appropriately (see [kachery-cloud](https://github.com/flatironintstitute/kachery-cloud)):
+
+```bash
+# Set the kachery zone as appropriate
+export KACHERY_ZONE=...
+
+# Set the kachery storage as appropriate
+export KACHERY_CLOUD_DIR=...
+```
+
+Then make sure you have run `kachery-cloud-init` to initialize the kachery cloud directory for your zone, as described in the [kachery-cloud docs](https://github.com/flatironintstitute/kachery-cloud).
+
+**Step 2: Identify a kachery-resource-proxy server**
 
 In order for remote computers to communicate with your locally-hosted resource, you need a proxy server. You can either [host the server yourself](https://github.com/scratchrealm/kachery-resource-proxy/blob/main/README.md) or use one maintained by someone else. Contact the authors for help finding a proxy server.
 
@@ -25,7 +39,7 @@ Obtain the Proxy URL and Proxy secret for the proxy server. These will be used b
 
 For this guide, let's assume the Proxy URL is `https://kachery-resource-proxy.herokuapp.com`
 
-**Step 2: Initialize the resource on your local machine**
+**Step 3: Initialize the resource on your local machine**
 
 On the computer that has the files you want to share, initialize the resource:
 
@@ -46,7 +60,7 @@ npx kachery-resource@latest init
 
 This will create a kachery-resource.yaml file in your configuration directory.
 
-**Step 3: Run the resource daemon**
+**Step 4: Run the resource daemon**
 
 To run the resource daemon:
 
