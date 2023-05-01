@@ -62,6 +62,12 @@ This will create a kachery-resource.yaml file in your configuration directory.
 
 **Step 4: Run the resource daemon**
 
+**Important:** For this step, make sure you are in an environment (conda or otherwise) where kachery-cloud is installed and available. You can test this by running
+
+```bash
+kachery-cloud --help
+```
+
 To run the resource daemon:
 
 ```bash
