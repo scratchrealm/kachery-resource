@@ -32,6 +32,7 @@ class ResourceClient {
             const wsUrl = this.config.proxyUrl.replace('http:','ws:').replace('https:','wss:')
             const ws = new WebSocket(wsUrl)
             this.#webSocket = ws
+            let resolved = false
             ws.on('open', () => {
                 console.info('Connected')
                 const msg: InitializeMessageFromResource = {
@@ -45,7 +46,19 @@ class ResourceClient {
             ws.on('close', () => {
                 console.info('Websocket closed.')
                 this.#webSocket = undefined
-                resolve()
+                if (!resolved) {
+                    resolved = true
+                    resolve()
+                }
+            })
+            ws.on('error', (err) => {
+                console.error(err)
+                console.warn(`Websocket error. Closing.`)
+                this.#webSocket = undefined
+                if (!resolved) {
+                    resolved = true
+                    resolve()
+                }
             })
             ws.on('message', msg => {                
                 const messageJson = msg.toString()
