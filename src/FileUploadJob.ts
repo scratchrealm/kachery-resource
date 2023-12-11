@@ -87,6 +87,7 @@ class FileUploadJob {
     }
     async _startUpload() {
         const cmd = `kachery-cloud-store ${this.#fileInfo.path}`
+        console.info(`Running: ${cmd}`)
         this._updateStatus({
             status: 'running',
             timestampStarted: Date.now()
